@@ -2,7 +2,7 @@
 ## Contributers:
 * Sean Gandre
 * Ulisses Pineda
-* Add names
+* George Huang
 * Jerry Yang
 # Weather App:
 ### Our group decided to create a weather app using mostly Python and some extensions that allow us to create GUI's and we are using the API from NOAA to get weather data based on your location.
