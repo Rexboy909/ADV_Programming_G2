@@ -1,7 +1,7 @@
 # Advanced Programming Group 2
 ## Contributers and Roles:
 * Sean Gandre:UI/Weather logic
-* Ulisses Pineda
+* Ulisses Pineda: GUI
 * George Huang
 * Jerry Yang
 # Weather App:
