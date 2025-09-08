@@ -1,6 +1,6 @@
 # Advanced Programming Group 2
-## Contributers:
-* Sean Gandre
+## Contributers and Roles:
+* Sean Gandre:UI/Weather logic
 * Ulisses Pineda
 * George Huang
 * Jerry Yang
