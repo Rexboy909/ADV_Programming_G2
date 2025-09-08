@@ -9,3 +9,4 @@
 
 ## [Class diagram]()
 ![Running App](https://github.com/Rexboy909/ADV_Programming_G2/blob/main/Images/image.png)
+![Running App](https://github.com/Rexboy909/ADV_Programming_G2/blob/main/Images/basicRunningApp.png)
