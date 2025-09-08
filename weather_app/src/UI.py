@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QMainWindow,
+from PySide6.QtWidgets import QApplication, QWidget, QMainWindow
 from PySide6.QtCore import QSize, Qt
 import sys
 
