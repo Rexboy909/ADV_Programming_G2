@@ -25,7 +25,7 @@ class WeatherAPI:
         return {}
     """
     # For the starter, we can have a simple method to get user input and display weather data
-    @staticmethod
+    @staticmethod # This makes the method static, so it belongs to the class, not the object it creates if we were creating an object but there are examples of this in the logic above
     def displayForStarter():
         print("Please enter a location to get the current weather data.\n")
         cityName = input("Location: ")
