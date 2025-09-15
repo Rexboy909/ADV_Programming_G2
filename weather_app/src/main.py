@@ -1,5 +1,5 @@
 import weather
-import ui
+import UI
 
 print("Welcome to the Weather App!")
-ui.wgui.exec()
+UI.wgui.exec()
