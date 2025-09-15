@@ -1,5 +1,5 @@
 # Simple Weather API class
-import requests
+#import requests
 
 class WeatherAPI:
     # This logic isn't needed for the starter, but added for later logic.

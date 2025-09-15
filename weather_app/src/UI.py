@@ -37,29 +37,31 @@ class MainWindow(QMainWindow):
         # day tab content
         todayTab = QWidget()
         todayTab.setAttribute(Qt.WA_StyledBackground, True)  # Ensure background is styled
-        todayTab.setStyleSheet("background-color: #e0f7fa; border: none;")  # Remove border, fill background
         todayTabLayout = QHBoxLayout()
         todayTab.setLayout(todayTabLayout)
         todayStatsLayout = QVBoxLayout()
         todayTabLayout.addLayout(todayStatsLayout)
         
-        def setDayColors(dayColor):
+        def setDayColors(dayColorTxt, dayColorBG):
             color = todayTab.styleSheet()
-            todayTemp.setStyleSheet("color: "+dayColor+";")
-            todayWindSpeed.setStyleSheet("color: "+dayColor+";")
-            todayWindDirection.setStyleSheet("color: "+dayColor+";")
-            todayHumidity.setStyleSheet("color: "+dayColor+";")
-            todayPrecipitation.setStyleSheet("color: "+dayColor+";")
+            todayTab.setStyleSheet("background-color: "+dayColorBG+"; border: none;")
+            todayTemp.setStyleSheet("color: "+dayColorTxt+";")
+            todayWindSpeed.setStyleSheet("color: "+dayColorTxt+";")
+            todayWindDirection.setStyleSheet("color: "+dayColorTxt+";")
+            todayHumidity.setStyleSheet("color: "+dayColorTxt+";")
+            todayPrecipitation.setStyleSheet("color: "+dayColorTxt+";")
             return color # returning the old color, incase you want to revert back
         
-        def setNightColors(nightColor):
+        def setNightColors(nightColorTxt, nightColorBG):
             color = tonightTab.styleSheet()
-            tonightTemp.setStyleSheet("color: "+nightColor+";")
-            tonightWindSpeed.setStyleSheet("color: "+nightColor+";")
-            tonightWindDirection.setStyleSheet("color: "+nightColor+";")
-            tonightHumidity.setStyleSheet("color: "+nightColor+";")
-            tonightPrecipitation.setStyleSheet("color: "+nightColor+";")
+            tonightTab.setStyleSheet("background-color: "+ nightColorBG +"; border: none;")
+            tonightTemp.setStyleSheet("color: "+nightColorTxt+";")
+            tonightWindSpeed.setStyleSheet("color: "+nightColorTxt+";")
+            tonightWindDirection.setStyleSheet("color: "+nightColorTxt+";")
+            tonightHumidity.setStyleSheet("color: "+nightColorTxt+";")
+            tonightPrecipitation.setStyleSheet("color: "+nightColorTxt+";")
             return color # returning the old color, incase you want to revert back
+        
 
         todayTemp = QLabel("Temperature: ")
         todayWindSpeed = QLabel("Wind Speed: ")
@@ -80,6 +82,7 @@ class MainWindow(QMainWindow):
 
         # night tab content
         tonightTab = QWidget()
+        todayTab.setAttribute(Qt.WA_StyledBackground, True)  # Ensure background is styled
         tonightTabLayout = QHBoxLayout()
         tonightTab.setLayout(tonightTabLayout)
         tonightStatsLayout = QVBoxLayout()
@@ -109,6 +112,8 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(dateLocation)
         mainLayout.addWidget(tabs)
 
+        setNightColors("#FFFFFF", "#2C3E50") # setting night colors
+        
         self.setCentralWidget(main)
 
 wgui = QApplication(sys.argv)
