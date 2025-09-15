@@ -24,7 +24,14 @@ class WeatherAPI:
         print(f"Failed to get weather data for {cityName}.")
         return {}
     """
-    # For the starter, we can have a simple method to get user input and display weather data
+    # For the starter, we can have a simple method to get what if feels like outside
+    @staticmethod
+    def calcFeelsLike(self, temp: float, humidity: float) -> float:
+        feels_like = temp + humidity * 0.1
+        print(f"Feels like temperature: {feels_like:.1f}°F")
+        return feels_like
+    
+    
     @staticmethod # This makes the method static, so it belongs to the class, not the object it creates if we were creating an object but there are examples of this in the logic above
     def displayForStarter():
         print("Please enter a location to get the current weather data.\n")
