@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget
+from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget, QToolBar, QMessageBox, QColorDialog
+from PySide6.QtGui import QAction
 from PySide6.QtCore import QSize, Qt
 import sys
 
@@ -7,7 +8,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Weather App")
 
-        dayColor = "#000000"  # Default color for day tab text
+       
         # Date and Location
         dateLocation = QWidget() #date and location widget
         dateLocationLayout = QHBoxLayout() #setting a horizontal layout
@@ -44,12 +45,13 @@ class MainWindow(QMainWindow):
         
         def setDayColors(dayColorTxt, dayColorBG):
             color = todayTab.styleSheet()
-            todayTab.setStyleSheet("background-color: "+dayColorBG+"; border: none;")
-            todayTemp.setStyleSheet("color: "+dayColorTxt+";")
-            todayWindSpeed.setStyleSheet("color: "+dayColorTxt+";")
-            todayWindDirection.setStyleSheet("color: "+dayColorTxt+";")
-            todayHumidity.setStyleSheet("color: "+dayColorTxt+";")
-            todayPrecipitation.setStyleSheet("color: "+dayColorTxt+";")
+            self.setStyleSheet("background-color: "+ dayColorBG +";")
+            dateLocation.setStyleSheet("background-color: "+ dayColorBG +"; border: none;")
+            locationLabel.setStyleSheet("color: "+dayColorTxt+";")
+            location.setStyleSheet("color: "+dayColorTxt+";")
+            dateLabel.setStyleSheet("color: "+dayColorTxt+";")
+            date.setStyleSheet("color: "+dayColorTxt+";")
+            tabs.setStyleSheet("background-color: "+ dayColorBG +"; border: none;")
             return color # returning the old color, incase you want to revert back
         
         def setNightColors(nightColorTxt, nightColorBG):
@@ -111,7 +113,7 @@ class MainWindow(QMainWindow):
         main.setLayout(mainLayout) #setting the layout to the main widget. IDK why it has to be done this way but
         mainLayout.addWidget(dateLocation)
         mainLayout.addWidget(tabs)
-
+        setDayColors("#000000", "#CCEAFF") # setting day colors
         setNightColors("#FFFFFF", "#2C3E50") # setting night colors
         
         self.setCentralWidget(main)
