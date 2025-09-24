@@ -1,5 +1,23 @@
 import requests
 
+
+API_KEY = '04b2c70f5678cb788cb9d62c0325ef32' #Hard coded for simplicity right now
+CITY = 'Salt Lake City'
+URL = f'https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=imperial'
+
+response = requests.get(URL)
+data = response.json()
+
+
+if response.status_code == 200:
+    temp = data['main']['temp']
+    description = data['weather'][0]['description']
+    print(f"Current temperature in {CITY}: {temp}°F")
+    print(f"Weather description: {description}")
+else:
+    print("Error fetching data:", data.get("message", "Unknown error"))
+
+"""
 class WeatherAPI:
     apiKey = "API_KEY_HERE"
 
@@ -44,6 +62,6 @@ class WeatherAPI:
         result = humidity > 70
         print(f"Humidity {humidity}% is considered {'high' if result else 'normal'}")
         return result
+"""
 
-
-WeatherAPI.displayForStarter()
+#WeatherAPI.displayForStarter()
