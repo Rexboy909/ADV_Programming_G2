@@ -1,8 +1,7 @@
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget, QToolBar, QMessageBox, QColorDialog
 from PySide6.QtGui import QAction, QColor
 from PySide6.QtCore import QSize, Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+
 import sys, weatherData
 
 class MainWindow(QMainWindow):
