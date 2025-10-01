@@ -1,67 +1,66 @@
-import requests
-from typing import Optional
+import requests  # Library to send HTTP requests to websites or APIs
 
-
-API_KEY = '04b2c70f5678cb788cb9d62c0325ef32' #Hard coded for simplicity right now
-CITY = 'Salt Lake City'
-URL = f'https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=imperial'
-
-
-response = requests.get(URL)
-data = response.json()
-
-'''
-if response.status_code == 200:
-    temp = data['main']['temp']
-    description = data['weather'][0]['description']
-    print(f"Current temperature in {CITY}: {temp}°F")
-    print(f"Weather description: {description}")
-else:
-    print("Error fetching data:", data.get("message", "Unknown error"))
-'''
+API_KEY = "04b2c70f5678cb788cb9d62c0325ef32"
+CITY = "Salt Lake City"
 
 class WeatherAPI:
-    apiKey = API_KEY
-    cityName = CITY
-    response = requests.get(URL)
-    data = response.json()
+    # Base URL for OpenWeatherMap API 
+    BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
-    @staticmethod
-    def buildRequestUrl(cityName: str) -> str:
-        return f"https://api.openweathermap.org/data/2.5/weather?q={cityName}&appid={WeatherAPI.apiKey}&units=imperial"
+    def __init__(self, api_key: str):
+        # Store the API key when we create a WeatherAPI object
+        self.api_key = api_key
+        # Cache dictionary, this saves results so we don’t keep calling the API for the same city
+        self.cache = {}
 
-    def getWeatherData(self, cityName: str) -> dict:
-        url = self.buildRequestUrl(cityName)
-        r = requests.get(url)
+    def _build_url(self, city: str) -> str:
+        # Helper function that builds the full request URL using the base URL, city, and API key.
+        return f"{self.BASE_URL}?q={city}&appid={self.api_key}&units=imperial"
+
+    def _fetch(self, city: str) -> dict:
+        
+        # This function sends the request to the API.
+        # If we've already fetched this city before, use the cached data.
+        # Otherwise, make a new request and store the result in the cache.
+        
+        if city in self.cache:
+            return self.cache[city] 
+
+        # Make a GET request to the API
+        r = requests.get(self._build_url(city))
+
+        # Check if request was successful the status code 200 means the request worked
+        
         if r.status_code == 200:
-            data = r.json()
-            self._last_city = cityName
-            self._last_data = data
-            print(f"Current temperature in {cityName}: {data['main']['temp']}°F")
+            data = r.json()         
+            self.cache[city] = data 
             return data
-        print(f"Failed to get weather data for {cityName}.")
+
+        # If something goes wrong, print an error and return an empty dict
+        print(f"Failed to fetch data for {city} (status {r.status_code})")
         return {}
 
-    def getHumidity(self, cityName: str):
-        # if we've already fetched data for this city, reuse it instead of calling the API again
-        data = None
-        if getattr(self, '_last_city', None) == cityName and getattr(self, '_last_data', None):
-            data = self._last_data
-        else:
-            data = self.getWeatherData(cityName)
-
-        if not data:
-            print(f"No weather data available for {cityName}.")
-            return None
+    def get_weather(self, city: str) -> None:
         
-        humidity = data.get('main', {}).get('humidity')
-        if humidity is None:
-            print(f"Humidity value missing in API response for {cityName}.")
-            return None
-        print(f"Current humidity in {cityName}: {humidity}%")
-        return humidity
+        #Prints the current temperature for a given city.
+        #Uses the _fetch function to get the weather data.
+        
+        data = self._fetch(city)
+        if data:
+            print(f"Current temperature in {city}: {data['main']['temp']}F")
 
-#if __name__ == "__main__":
-api = WeatherAPI()
-api.getWeatherData(CITY)
-hum = api.getHumidity(CITY)
+    def get_humidity(self, city: str) -> None:
+        
+        #Prints the current humidity for a given city.
+        #Also uses the _fetch function, so it avoids duplicate requests.
+        data = self._fetch(city)
+        if data:
+            print(f"Current humidity in {city}: {data['main']['humidity']}%")
+            return data["main"]["humidity"]
+
+
+
+
+api = WeatherAPI(API_KEY)   # Creates a WeatherAPI object
+api.get_weather(CITY)       
+api.get_humidity(CITY)      
