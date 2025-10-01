@@ -8,6 +8,7 @@
 ### Our group decided to create a weather app using mostly Python and some extensions that allow us to create GUI's and we are using the API from NOAA to get weather data based on your location.
 # How to run the weather app:
 ## Just run the Install shell file by using "sh Install.sh" in the terminal, it should install all the dependencies
+## if that doesn't work, make sure to install pySide6 & requests via pip (pip3 for our school macs)
 
 ## [Class diagram]()
 
