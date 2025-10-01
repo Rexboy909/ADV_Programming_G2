@@ -12,7 +12,6 @@ class WeatherAPI:
         self.api_key = api_key
         # Cache dictionary, this saves results so we don’t keep calling the API for the same city
         self.cache = {}
-
     def _build_url(self, city: str) -> str:
         # Helper function that builds the full request URL using the base URL, city, and API key.
         return f"{self.BASE_URL}?q={city}&appid={self.api_key}&units=imperial"
@@ -40,7 +39,7 @@ class WeatherAPI:
         print(f"Failed to fetch data for {city} (status {r.status_code})")
         return {}
 
-    def get_weather(self, city: str) -> None:
+    def get_temperature(self, city: str) -> None:
         
         #Prints the current temperature for a given city.
         #Uses the _fetch function to get the weather data.
@@ -48,6 +47,39 @@ class WeatherAPI:
         data = self._fetch(city)
         if data:
             print(f"Current temperature in {city}: {data['main']['temp']}F")
+            return data["main"]["temp_min"]
+    def get_temp_min(self, city: str) -> None:
+        
+        #Prints the minimum temperature for a given city.
+        #Also uses the _fetch function, so it avoids duplicate requests.
+        data = self._fetch(city)
+        if data:
+            print(f"Minimum temperature in {city}: {data['main']['temp_min']}F")
+            return data["main"]["temp_min"]
+    def get_temp_max(self, city: str) -> None:
+        
+        #Prints the maximum temperature for a given city.
+        #Also uses the _fetch function, so it avoids duplicate requests.
+        data = self._fetch(city)
+        if data:
+            print(f"Maximum temperature in {city}: {data['main']['temp_max']}F")
+            return data["main"]["temp_max"]
+    def get_wind_speed(self, city: str) -> None:
+        
+        #Prints the current wind speed for a given city.
+        #Also uses the _fetch function, so it avoids duplicate requests.
+        data = self._fetch(city)
+        if data:
+            print(f"Current wind speed in {city}: {data['wind']['speed']} m/s")
+            return data["wind"]["speed"]
+    def get_wind_dir(self, city: str) -> None:
+        
+        #Prints the current wind direction for a given city.
+        #Also uses the _fetch function, so it avoids duplicate requests.
+        data = self._fetch(city)
+        if data:
+            print(f"Current wind direction in {city}: {data['wind']['deg']}°")
+            return data["wind"]["deg"]
 
     def get_humidity(self, city: str) -> None:
         
@@ -60,7 +92,6 @@ class WeatherAPI:
 
 
 
-
 api = WeatherAPI(API_KEY)   # Creates a WeatherAPI object
-api.get_weather(CITY)       
+api.get_temperature(CITY)       
 api.get_humidity(CITY)      

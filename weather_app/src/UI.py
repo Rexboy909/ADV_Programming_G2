@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget, QToolBar, QMessageBox, QColorDialog
 from PySide6.QtGui import QAction, QColor
 from PySide6.QtCore import QSize, Qt
-import sys
+import sys, weatherData
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -44,11 +44,11 @@ class MainWindow(QMainWindow):
         todayStatsLayout = QVBoxLayout()
         todayTabLayout.addLayout(todayStatsLayout)
         
-        todayTemp = QLabel("Temperature: ")
-        todayWindSpeed = QLabel("Wind Speed: ")
-        todayWindDirection = QLabel("Wind Direction: ")
-        todayHumidity = QLabel("Humidity: ")
-        todayPrecipitation = QLabel("Precipitation: ")
+        todayTemp = QLabel("Temperature: " + str(weatherData.temp)+"°F")
+        todayWindSpeed = QLabel("Wind Speed: "+ str(weatherData.windSpeed)+" m/s")
+        todayWindDirection = QLabel("Wind Direction: " + str(weatherData.windDir)+"°")
+        todayHumidity = QLabel("Humidity: " + str(weatherData.humidity)+"%")
+        todayPrecipitation = QLabel("Precipitation: "+ weatherData.precipitation)
         todayStatsLayout.addWidget(todayTemp)
         todayStatsLayout.addWidget(todayWindSpeed)
         todayStatsLayout.addWidget(todayWindDirection)
