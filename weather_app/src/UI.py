@@ -3,70 +3,65 @@
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget, QToolBar, QMessageBox, QColorDialog, QMenu, QToolButton
 from PySide6.QtGui import QAction, QColor, QCursor
 from PySide6.QtCore import QSize, Qt
+import sys
+import requests  
+
+
+from trend_view import TemperatureTrendView
 
 import sys, weatherData, weatherPlotterDualAxis
+API_KEY = "04b2c70f5678cb788cb9d62c0325ef32"  
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Weather App")
 
-       
         # Date and Location
-        dateLocation = QWidget() #date and location widget
-        dateLocation.setAttribute(Qt.WA_StyledBackground, True)  # allow styling background
-        dateLocationLayout = QHBoxLayout() #setting a horizontal layout
-        dateLocation.setLayout(dateLocationLayout) #setting the layout to the date and location widget
-
+        dateLocation = QWidget()  # date and location widget
+        dateLocation.setAttribute(Qt.WA_StyledBackground, True)
+        dateLocationLayout = QHBoxLayout()
+        dateLocation.setLayout(dateLocationLayout)
 
         locationLabel = QLabel("Location")
-        locationLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop) # aligning the label to the left
-
-        dateLocationLayout.addWidget(locationLabel) #adding the label to the layout
+        locationLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        dateLocationLayout.addWidget(locationLabel)
 
         location = QLineEdit()
-        location.setPlaceholderText("Enter Location") 
+        location.setPlaceholderText("Enter Location (e.g., Salt Lake City or Paris,FR)")
+        dateLocationLayout.addWidget(location)
 
-        dateLocationLayout.addWidget(location) #adding the input field to the layout
-
-        dateLabel = QLabel("Date:") 
+        dateLabel = QLabel("Date:")
         dateLabel.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        dateLocationLayout.addWidget(dateLabel)
 
-        dateLocationLayout.addWidget(dateLabel) #adding the date label to the layout
-
-        date = QDateTimeEdit() 
+        date = QDateTimeEdit()
         date.setCalendarPopup(True)
-        date.setDateTime(date.dateTime().currentDateTime()) #setting the current date and time as default
-        dateLocationLayout.addWidget(date) #adding the date input field to the layout
+        date.setDateTime(date.dateTime().currentDateTime())
+        dateLocationLayout.addWidget(date)
+
         
-        # day tab content
         todayTab = QWidget()
-        todayTab.setAttribute(Qt.WA_StyledBackground, True)  # Ensure background is styled
+        todayTab.setAttribute(Qt.WA_StyledBackground, True)
         todayTabLayout = QHBoxLayout()
         todayTab.setLayout(todayTabLayout)
         todayStatsLayout = QVBoxLayout()
         todayTabLayout.addLayout(todayStatsLayout)
-        
-        todayTemp = QLabel("Temperature: " + str(weatherData.temp)+"°F")
-        todayWindSpeed = QLabel("Wind Speed: "+ str(weatherData.windSpeed)+" m/s")
-        todayWindDirection = QLabel("Wind Direction: " + str(weatherData.windDir)+"°")
-        todayHumidity = QLabel("Humidity: " + str(weatherData.humidity)+"%")
-        todayPrecipitation = QLabel("Precipitation: "+ weatherData.precipitation)
+
+        todayTemp = QLabel("Temperature: ")
+        todayWindSpeed = QLabel("Wind Speed: ")
+        todayWindDirection = QLabel("Wind Direction: ")
+        todayHumidity = QLabel("Humidity: ")
+        todayPrecipitation = QLabel("Precipitation: ")
         todayStatsLayout.addWidget(todayTemp)
         todayStatsLayout.addWidget(todayWindSpeed)
         todayStatsLayout.addWidget(todayWindDirection)
         todayStatsLayout.addWidget(todayHumidity)
         todayStatsLayout.addWidget(todayPrecipitation)
 
-        # Image support is possible
-        # todayimg = QPixmap()
-        # todayimg.load("weather_app/assets/sunny.png")
-        # todayimg = todayimg.scaled(QSize(100,100), Qt.KeepAspectRatio) #scaling the image to fit the label
-        # todayTabLayout.addWidget(QLabel(pixmap=todayimg)) #adding the image to the layout
-
         # night tab content
         tonightTab = QWidget()
-        tonightTab.setAttribute(Qt.WA_StyledBackground, True)  # Ensure background is styled
+        tonightTab.setAttribute(Qt.WA_StyledBackground, True)
         tonightTabLayout = QHBoxLayout()
         tonightTab.setLayout(tonightTabLayout)
         tonightStatsLayout = QVBoxLayout()
@@ -82,25 +77,79 @@ class MainWindow(QMainWindow):
         tonightStatsLayout.addWidget(tonightWindDirection)
         tonightStatsLayout.addWidget(tonightHumidity)
         tonightStatsLayout.addWidget(tonightPrecipitation)
-        
+
+    
+        trendTab = QWidget()
+        trendTab.setAttribute(Qt.WA_StyledBackground, True)
+        trendLayout = QVBoxLayout(trendTab)
+        self.trend_widget = TemperatureTrendView(api_key=API_KEY)
+        trendLayout.addWidget(self.trend_widget)
+
+        # Tabs
+        tabs = QTabWidget()
+        tabs.setTabPosition(QTabWidget.North)
+        tabs.addTab(todayTab, "Today")
+        tabs.addTab(tonightTab, "Tonight")
+        tabs.addTab(trendTab, "Trend")
+
+        # Toolbar
+        toolbar = QToolBar("Main Toolbar")
+        toolbar.setObjectName("mainToolbar")
+        toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(16, 16))
+        self.addToolBar(toolbar)
+
+        # Theme state
+        self._is_night = False
+        self._day_colors = ("#000000", "#818181")
+        self._night_colors = ("#FFFFFF", "#2C3E50")
+
+        # Theme actions
+        def toggle_theme():
+            if getattr(self, "_is_night", False):
+                setColors(*self._day_colors); self._is_night = False
+            else:
+                setColors(*self._night_colors); self._is_night = True
+
+        def pick_day_colors():
+            txt = QColorDialog.getColor(QColor(self._day_colors[0]), self, "Day text color")
+            if not txt.isValid(): return
+            bg = QColorDialog.getColor(QColor(self._day_colors[1]), self, "Day background color")
+            if not bg.isValid(): return
+            self._day_colors = (txt.name(), bg.name()); setColors(*self._day_colors)
+
+        def pick_night_colors():
+            txt = QColorDialog.getColor(QColor(self._night_colors[0]), self, "Night text color")
+            if not txt.isValid(): return
+            bg = QColorDialog.getColor(QColor(self._night_colors[1]), self, "Night background color")
+            if not bg.isValid(): return
+            self._night_colors = (txt.name(), bg.name()); setColors(*self._night_colors)
+
+        toggle_action = QAction("Toggle Theme", self); toggle_action.triggered.connect(toggle_theme); toolbar.addAction(toggle_action)
+        day_color_action = QAction("Day Colors...", self); day_color_action.triggered.connect(pick_day_colors); toolbar.addAction(day_color_action)
+        night_color_action = QAction("Night Colors...", self); night_color_action.triggered.connect(pick_night_colors); toolbar.addAction(night_color_action)
+        about_action = QAction("About", self); about_action.triggered.connect(lambda: QMessageBox.information(self, "About", "Weather App")); toolbar.addAction(about_action)
+
+        # Main container
+        main = QWidget()
+        main.setAttribute(Qt.WA_StyledBackground, True)
+        mainLayout = QVBoxLayout()
+        main.setLayout(mainLayout)
+        mainLayout.addWidget(dateLocation)
+        mainLayout.addWidget(tabs)
+        self.setCentralWidget(main)
+
+       
         def setColors(dayColorTxt, dayColorBG):
-            # Accept either QColor or string; fall back to defaults if invalid
             def _to_name(val, fallback):
-                if isinstance(val, QColor):
-                    return val.name() if val.isValid() else fallback
-                if isinstance(val, str) and val:
-                    return val
+                if isinstance(val, QColor): return val.name() if val.isValid() else fallback
+                if isinstance(val, str) and val: return val
                 return fallback
-
-            txt = _to_name(dayColorTxt, "#000000")
-            bg = _to_name(dayColorBG, "#CCEAFF")
-
-            # main/background containers
+            txt = _to_name(dayColorTxt, "#000000"); bg = _to_name(dayColorBG, "#CCEAFF")
             self.setStyleSheet(f"background-color: {bg};")
             dateLocation.setStyleSheet(f"background-color: {bg}; border: none;")
             todayTab.setStyleSheet(f"background-color: {bg}; border: none;")
             tonightTab.setStyleSheet(f"background-color: {bg}; border: none;")
-            # inline widgets
             locationLabel.setStyleSheet(f"color: {txt};")
             location.setStyleSheet(f"color: {txt}; background: transparent; border: 1px solid {txt}; border-radius: 4px; padding: 4px;")
             date.setStyleSheet(f"QDateTimeEdit, QDateTimeEdit::drop-down, QDateTimeEdit QAbstractSpinBox, QDateTimeEdit QLineEdit {{ color: {txt}; background: transparent; border: none; }}")
@@ -115,7 +164,6 @@ class MainWindow(QMainWindow):
             tonightWindDirection.setStyleSheet(f"color: {txt};")
             tonightHumidity.setStyleSheet(f"color: {txt};")
             tonightPrecipitation.setStyleSheet(f"color: {txt};")
-            # toolbar styling (toolbar variable created after setColors definition; safe because setColors is called later)
             try:
                 toolbar.setStyleSheet(f"""
                 QToolBar {{
@@ -128,42 +176,17 @@ class MainWindow(QMainWindow):
                     border: none;
                     padding: 4px 8px;
                 }}
-                QToolButton:hover {{
-                    background: rgba(0,0,0,0.04);
-                }}
+                QToolButton:hover {{ background: rgba(0,0,0,0.04); }}
                 """)
             except NameError:
-                # toolbar not created yet; styling will be applied when setColors is called later
                 pass
-
-            # tabs: pane (page) and tab outlines / text color via QSS
             tab_style = f'''
-            QTabWidget::pane {{
-                background-color: {bg};
-                border: 1px solid {txt};
-                top: -1px;
-            }}
-            QTabBar::tab {{
-                color: {txt};
-                background: transparent;
-                padding: 6px 12px;
-                margin: 2px;
-                border: 1px solid {txt};
-                border-bottom: none;
-                border-top-left-radius: 6px;
-                border-top-right-radius: 6px;
-            }}
-            QTabBar::tab:selected {{
-                background: {bg};
-                margin-bottom: 0;
-                font-weight: bold;
-            }}
-            QTabBar::tab:hover {{
-                background: rgba(0,0,0,0.03);
-            }}
-            QTabBar::tab:focus {{
-                outline: none;
-            }}
+            QTabWidget::pane {{ background-color: {bg}; border: 1px solid {txt}; top: -1px; }}
+            QTabBar::tab {{ color: {txt}; background: transparent; padding: 6px 12px; margin: 2px;
+                             border: 1px solid {txt}; border-bottom: none; border-top-left-radius: 6px; border-top-right-radius: 6px; }}
+            QTabBar::tab:selected {{ background: {bg}; margin-bottom: 0; font-weight: bold; }}
+            QTabBar::tab:hover {{ background: rgba(0,0,0,0.03); }}
+            QTabBar::tab:focus {{ outline: none; }}
             '''
             tabs.setStyleSheet(tab_style)
             # Try to update the plotter theme if the plotter has been created
@@ -280,6 +303,78 @@ class MainWindow(QMainWindow):
 
         # apply initial theme now that toolbar, tabs and widgets exist
         setColors(*self._day_colors)
+
+
+        def update_today_tonight(city: str):
+            try:
+                url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=imperial"
+                r = requests.get(url, timeout=10)
+                if r.status_code != 200:
+                    todayTemp.setText("Temperature: (no data)")
+                    todayWindSpeed.setText("Wind Speed: (no data)")
+                    todayWindDirection.setText("Wind Direction: (no data)")
+                    todayHumidity.setText("Humidity: (no data)")
+                    todayPrecipitation.setText("Precipitation: (no data)")
+                    tonightTemp.setText("Temperature: (no data)")
+                    tonightWindSpeed.setText("Wind Speed: (no data)")
+                    tonightWindDirection.setText("Wind Direction: (no data)")
+                    tonightHumidity.setText("Humidity: (no data)")
+                    tonightPrecipitation.setText("Precipitation: (no data)")
+                    return
+
+                data = r.json()
+                main = data.get("main", {})
+                wind = data.get("wind", {})
+                desc = (data.get("weather") or [{}])[0].get("description", "")
+                t = main.get("temp"); h = main.get("humidity")
+                ws = wind.get("speed"); wd = wind.get("deg")
+
+                dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
+                wd_text = "N/A" if wd is None else dirs[int((wd + 11.25) // 22.5) % 16]
+
+                todayTemp.setText(f"Temperature: {t} °F  {desc}")
+                todayWindSpeed.setText(f"Wind Speed: {ws} mph")
+                todayWindDirection.setText(f"Wind Direction: {wd_text}")
+                todayHumidity.setText(f"Humidity: {h}%")
+
+                precip = 0.0
+                if "rain" in data and "1h" in data["rain"]:
+                    precip = float(data["rain"]["1h"])
+                elif "snow" in data and "1h" in data["snow"]:
+                    precip = float(data["snow"]["1h"])
+                todayPrecipitation.setText(f"Precipitation: {precip} mm (last 1h)")
+
+                # Mirror to Tonight
+                tonightTemp.setText(f"Temperature: {t} °F")
+                tonightWindSpeed.setText(f"Wind Speed: {ws} mph")
+                tonightWindDirection.setText(f"Wind Direction: {wd_text}")
+                tonightHumidity.setText(f"Humidity: {h}%")
+                tonightPrecipitation.setText(f"Precipitation: {precip} mm (last 1h)")
+            except Exception:
+                # Show safe error text without crashing UI
+                todayTemp.setText("Temperature: (error)")
+                todayWindSpeed.setText("Wind Speed: (error)")
+                todayWindDirection.setText("Wind Direction: (error)")
+                todayHumidity.setText("Humidity: (error)")
+                todayPrecipitation.setText("Precipitation: (error)")
+                tonightTemp.setText("Temperature: (error)")
+                tonightWindSpeed.setText("Wind Speed: (error)")
+                tonightWindDirection.setText("Wind Direction: (error)")
+                tonightHumidity.setText("Humidity: (error)")
+                tonightPrecipitation.setText("Precipitation: (error)")
+
+      
+        location.returnPressed.connect(lambda: (
+            update_today_tonight((location.text() or "Salt Lake City").strip()),
+            self.trend_widget.plot_city((location.text() or "Salt Lake City").strip())
+        ))
+
+   
+        default_city = "Salt Lake City"
+        location.setText(default_city)
+        update_today_tonight(default_city)
+        self.trend_widget.plot_city(default_city)
+
 wgui = QApplication(sys.argv)
 window = MainWindow()
 window.show()
