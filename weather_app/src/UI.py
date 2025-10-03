@@ -1,8 +1,10 @@
-from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget, QToolBar, QMessageBox, QColorDialog
-from PySide6.QtGui import QAction, QColor
+# Created by Rex
+# Other contributors:
+from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QDateTimeEdit, QTabWidget, QToolBar, QMessageBox, QColorDialog, QMenu, QToolButton
+from PySide6.QtGui import QAction, QColor, QCursor
 from PySide6.QtCore import QSize, Qt
 
-import sys, weatherData
+import sys, weatherData, weatherPlotterDualAxis
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -164,6 +166,16 @@ class MainWindow(QMainWindow):
             }}
             '''
             tabs.setStyleSheet(tab_style)
+            # Try to update the plotter theme if the plotter has been created
+            try:
+                dataPlotter.set_theme_colors(txt, bg)
+                dataPlotter.plot()
+            except NameError:
+                # dataPlotter not created yet; it'll be initialized later
+                pass
+            except Exception:
+                # ignore plotting errors to avoid breaking the UI theme change
+                pass
             return txt, bg  # return the applied colors
         # Tabs setting
         tabs = QTabWidget()
@@ -182,6 +194,9 @@ class MainWindow(QMainWindow):
         self._is_night = False
         self._day_colors = ("#000000", "#818181")
         self._night_colors = ("#FFFFFF", "#2C3E50")
+        # remember the original defaults so we can reset later
+        self._default_day_colors = self._day_colors
+        self._default_night_colors = self._night_colors
 
         def toggle_theme():
             if getattr(self, "_is_night", False):
@@ -211,23 +226,48 @@ class MainWindow(QMainWindow):
             self._night_colors = (txt.name(), bg.name())
             setColors(*self._night_colors)
 
+        def reset_colors():
+            # restore the stored defaults and apply them
+            self._day_colors = self._default_day_colors
+            self._night_colors = self._default_night_colors
+            setColors(*self._day_colors)
+
         toggle_action = QAction("Toggle Theme", self)
         toggle_action.triggered.connect(toggle_theme)
         toolbar.addAction(toggle_action)
 
+        settings_menu = QMenu("Settings", self)
+
         day_color_action = QAction("Day Colors...", self)
         day_color_action.triggered.connect(pick_day_colors)
-        toolbar.addAction(day_color_action)
+        settings_menu.addAction(day_color_action)
 
         night_color_action = QAction("Night Colors...", self)
         night_color_action.triggered.connect(pick_night_colors)
-        toolbar.addAction(night_color_action)
+        settings_menu.addAction(night_color_action)
+
+        reset_colors_action = QAction("Reset Colors", self)
+        reset_colors_action.triggered.connect(reset_colors)
+        settings_menu.addAction(reset_colors_action)
+
+        # Create a tool button that shows the settings menu when clicked
+        settings_button = QToolButton(self)
+        settings_button.setText("Settings")
+        settings_button.setMenu(settings_menu)
+        settings_button.setPopupMode(QToolButton.InstantPopup)
+        toolbar.addWidget(settings_button)
 
         about_action = QAction("About", self)
         about_action.triggered.connect(lambda: QMessageBox.information(self, "About", "Weather App"))
         toolbar.addAction(about_action)
         # --- end toolbar insertion ---
 
+        dataPlotter = weatherPlotterDualAxis.WeatherPlotterDualAxis(parent=tabs)
+        dataPlotter.add_city_data("CityA", ["08:00","12:00","16:00"], [60,72,68], [0.0, 1.2, 0.3])
+        dataPlotter.add_city_data("CityB", ["08:00","12:00","16:00"], [55,70,66], [0.0, 0.5, 0.0])
+        dataPlotter.plot()
+        tabs.addTab(dataPlotter, "Data Plot")
+        dataPlotter.set_theme_colors(*self._day_colors)
         # Main Widget
         main = QWidget()
         main.setAttribute(Qt.WA_StyledBackground, True)
@@ -240,7 +280,6 @@ class MainWindow(QMainWindow):
 
         # apply initial theme now that toolbar, tabs and widgets exist
         setColors(*self._day_colors)
-
 wgui = QApplication(sys.argv)
 window = MainWindow()
 window.show()
