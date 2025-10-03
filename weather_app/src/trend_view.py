@@ -122,7 +122,7 @@ class TemperatureTrendView(QWidget):
         self._style_axes()
         self._canvas.draw_idle()
 
-    # ---------- helpers ----------
+   
 
     def _style_axes(self):
         self._ax.set_xlabel("Day")
