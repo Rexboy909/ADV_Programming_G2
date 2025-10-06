@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         todayTabLayout.addLayout(todayStatsLayout)
         
         todayTemp = QLabel("Temperature: " + str(weatherData.temp)+"°F")
-        todayWindSpeed = QLabel("Wind Speed: "+ str(weatherData.windSpeed)+" m/s")
+        todayWindSpeed = QLabel("Wind Speed: "+ str(weatherData.windSpeed)+" mph")
         todayWindDirection = QLabel("Wind Direction: " + str(weatherData.windDir)+"°")
         todayHumidity = QLabel("Humidity: " + str(weatherData.humidity)+"%")
         todayPrecipitation = QLabel("Precipitation: "+ weatherData.precipitation)
@@ -104,7 +104,8 @@ class MainWindow(QMainWindow):
             # inline widgets
             locationLabel.setStyleSheet(f"color: {txt};")
             location.setStyleSheet(f"color: {txt}; background: transparent; border: 1px solid {txt}; border-radius: 4px; padding: 4px;")
-            date.setStyleSheet(f"QDateTimeEdit, QDateTimeEdit::drop-down, QDateTimeEdit QAbstractSpinBox, QDateTimeEdit QLineEdit {{ color: {txt}; background: transparent; border: none; }}")
+            # make the date selector visible with a border that matches text color
+            date.setStyleSheet(f"QDateTimeEdit, QDateTimeEdit::drop-down, QDateTimeEdit QAbstractSpinBox, QDateTimeEdit QLineEdit {{ color: {txt}; background: transparent; border: 1px solid {txt}; border-radius: 4px; padding: 4px; }}")
             dateLabel.setStyleSheet(f"color: {txt};")
             todayTemp.setStyleSheet(f"color: {txt};")
             todayWindSpeed.setStyleSheet(f"color: {txt};")
