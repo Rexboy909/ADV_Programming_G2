@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QVBoxLayout, Q
 from PySide6.QtGui import QAction, QColor, QCursor
 from PySide6.QtCore import QSize, Qt
 
-import sys, weatherData, weatherPlotterDualAxis
+import sys, weatherData, weatherPlotterDualAxis, trend_view
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -72,11 +72,12 @@ class MainWindow(QMainWindow):
         tonightStatsLayout = QVBoxLayout()
         tonightTabLayout.addLayout(tonightStatsLayout)
 
-        tonightTemp = QLabel("Temperature: ")
-        tonightWindSpeed = QLabel("Wind Speed: ")
-        tonightWindDirection = QLabel("Wind Direction: ")
-        tonightHumidity = QLabel("Humidity: ")
-        tonightPrecipitation = QLabel("Precipitation: ")
+        # initialize tonight labels from weatherData module variables
+        tonightTemp = QLabel(f"Min/Max: {weatherData.tempMin} / {weatherData.tempMax}")
+        tonightWindSpeed = QLabel("Wind Speed: " + str(weatherData.windSpeed))
+        tonightWindDirection = QLabel("Wind Direction: " + str(weatherData.windDir))
+        tonightHumidity = QLabel("Humidity: " + str(weatherData.humidity) + "%")
+        tonightPrecipitation = QLabel("Precipitation: " + str(weatherData.precipitation))
         tonightStatsLayout.addWidget(tonightTemp)
         tonightStatsLayout.addWidget(tonightWindSpeed)
         tonightStatsLayout.addWidget(tonightWindDirection)
@@ -260,6 +261,62 @@ class MainWindow(QMainWindow):
         about_action = QAction("About", self)
         about_action.triggered.connect(lambda: QMessageBox.information(self, "About", "Weather App"))
         toolbar.addAction(about_action)
+        # Fetch action: request new API data for the entered location and update UI
+        def fetch_for_location():
+            # Use weatherData.fetch_for_city so UI stays free of API logic
+            city = location.text().strip()
+            if not city:
+                QMessageBox.warning(self, "No Location", "Please enter a location before fetching data.")
+                return
+            try:
+                import weatherData
+                vals = weatherData.fetch_for_city(city)
+                new_temp = vals.get('temp', 'N/A')
+                new_wind = vals.get('windSpeed', 'N/A')
+                new_wind_dir = vals.get('windDir', 'N/A')
+                new_humidity = vals.get('humidity', 'N/A')
+
+                todayTemp.setText(f"Temperature: {new_temp}°F" if new_temp != "N/A" else "Temperature: N/A")
+                todayWindSpeed.setText(f"Wind Speed: {new_wind} m/s" if new_wind != "N/A" else "Wind Speed: N/A")
+                todayWindDirection.setText(f"Wind Direction: {new_wind_dir}°" if new_wind_dir != "N/A" else "Wind Direction: N/A")
+                todayHumidity.setText(f"Humidity: {new_humidity}%" if new_humidity != "N/A" else "Humidity: N/A")
+
+                # update tonight tab info (min/max, same wind/humidity/precip if available)
+                tonightTemp.setText(f"Min/Max: {vals.get('tempMin','N/A')} / {vals.get('tempMax','N/A')}")
+                tonightWindSpeed.setText(f"Wind Speed: {vals.get('windSpeed','N/A')} m/s")
+                tonightWindDirection.setText(f"Wind Direction: {vals.get('windDir','N/A')}°")
+                tonightHumidity.setText(f"Humidity: {vals.get('humidity','N/A')}%")
+                tonightPrecipitation.setText(f"Precipitation: {vals.get('precipitation','N/A')}")
+
+                # refresh plotter if available
+                try:
+                    dp = None
+                    try:
+                        dp = dataPlotter
+                    except NameError:
+                        try:
+                            dp = getattr(self, 'dataPlotter')
+                        except Exception:
+                            dp = None
+                    if dp:
+                        x = ["Now"]
+                        y = [new_temp if isinstance(new_temp, (int, float)) else 0]
+                        precip = [0.0]
+                        try:
+                            dp.add_city_data(city, x, y, precip)
+                            dp.plot()
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+
+            except Exception as e:
+                QMessageBox.critical(self, "Fetch Error", f"Failed to fetch weather for {city}: {e}")
+
+        fetch_action = QAction("Fetch", self)
+        fetch_action.setToolTip("Fetch weather for the entered location")
+        fetch_action.triggered.connect(fetch_for_location)
+        toolbar.addAction(fetch_action)
         # --- end toolbar insertion ---
 
         dataPlotter = weatherPlotterDualAxis.WeatherPlotterDualAxis(parent=tabs)
@@ -268,6 +325,10 @@ class MainWindow(QMainWindow):
         dataPlotter.plot()
         tabs.addTab(dataPlotter, "Data Plot")
         dataPlotter.set_theme_colors(*self._day_colors)
+        
+        trendView = trend_view.TemperatureTrendView("04b2c70f5678cb788cb9d62c0325ef32",parent=tabs)
+        tabs.addTab(trendView, "Trends")
+        
         # Main Widget
         main = QWidget()
         main.setAttribute(Qt.WA_StyledBackground, True)
